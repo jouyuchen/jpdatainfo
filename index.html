@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google予約 転換率ダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F6F2;--surface:#fff;--surface2:#F0EEE8;--border:#E2DFD6;
+  --text:#1A1916;--text2:#6B6860;--text3:#A8A59C;
+  --accent:#2D5A3D;--accent-light:#E8F0EA;
+  --amber:#8B5E0A;--amber-light:#FFF3D6;
+  --red:#8B2020;--red-light:#FDEAEA;
+  --blue:#1A3A5C;
+  --mono:'DM Mono',monospace;--sans:'Noto Sans JP',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+.loading-screen{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.loading-logo{width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.loading-logo svg{width:28px;height:28px;fill:white;}
+.loading-title{font-size:16px;font-weight:700;}
+.loading-sub{font-size:12px;color:var(--text2);font-family:var(--mono);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-screen{position:fixed;inset:0;background:var(--bg);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
+.error-icon{font-size:48px;}
+.error-title{font-size:18px;font-weight:700;color:var(--red);}
+.error-msg{font-size:12px;color:var(--text2);text-align:center;max-width:520px;line-height:1.7;font-family:var(--mono);background:var(--surface);padding:16px 20px;border-radius:8px;border:1px solid var(--border);white-space:pre-wrap;}
+.btn-retry{font-size:13px;padding:10px 24px;border-radius:8px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:500;}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;height:56px;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.header-logo{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.header-logo svg{width:16px;height:16px;fill:white;}
+.header-title{font-size:14px;font-weight:700;}
+.header-sub{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.header-badge{background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:500;padding:3px 10px;border-radius:99px;font-family:var(--mono);}
+.update-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.update-info{font-size:12px;color:var(--text2);font-family:var(--mono);}
+.update-info strong{color:var(--accent);}
+.btn-reload{font-size:12px;padding:7px 16px;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;font-family:var(--mono);color:var(--text2);transition:all .15s;display:flex;align-items:center;gap:6px;}
+.btn-reload:hover{border-color:var(--accent);color:var(--accent);}
+.btn-reload.loading{opacity:.5;pointer-events:none;}
+.spin-sm{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:none;}
+.btn-reload.loading .spin-sm{display:inline-block;}
+.controls{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px;}
+.controls-title{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;}
+.controls-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.control-group{display:flex;flex-direction:column;gap:8px;}
+.control-group label{font-size:12px;color:var(--text2);font-weight:500;}
+.date-inputs{display:flex;gap:8px;align-items:center;}
+.date-inputs span{font-size:12px;color:var(--text3);}
+select,input[type=month]{font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:7px;padding:7px 10px;background:var(--bg);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s;}
+select:focus,input[type=month]:focus{border-color:var(--accent);}
+.clinic-pills{display:flex;flex-wrap:wrap;gap:7px;}
+.pill{font-size:12px;padding:5px 12px;border-radius:99px;border:1px solid var(--border);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;background:var(--surface);color:var(--text2);}
+.pill:hover{border-color:var(--text3);color:var(--text);}
+.pill.active{color:white;border-color:transparent;}
+.pill-all{font-size:12px;padding:5px 14px;border-radius:99px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--text2);font-weight:500;transition:all .15s;}
+.pill-all:hover{background:var(--border);}
+.pill-hint{font-size:10px;color:var(--text3);align-self:center;font-family:var(--mono);}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.metrics{grid-template-columns:1fr;}}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;}
+.metric::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);}
+.metric.amber::before{background:var(--amber);}
+.metric.blue::before{background:var(--blue);}
+.metric.red::before{background:var(--red);}
+.metric-label{font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+.metric-value{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1;}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:4px;}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.charts{grid-template-columns:1fr;}}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;}
+.chart-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.chart-desc{font-size:11px;color:var(--text2);margin-bottom:16px;}
+.chart-wrap{position:relative;height:240px;}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.table-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-size:13px;font-weight:700;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--bg);padding:10px 16px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--border);}
+thead th:first-child{text-align:left;}
+tbody tr{border-bottom:1px solid var(--bg);transition:background .1s;}
+tbody tr:hover{background:var(--bg);}
+tbody td{padding:10px 16px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--text);white-space:nowrap;}
+tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;display:flex;align-items:center;gap:8px;}
+.clinic-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.clinic-link{cursor:pointer;text-decoration:none;color:inherit;}
+.clinic-link:hover{text-decoration:underline;color:var(--accent);}
+.rate-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;font-family:var(--mono);}
+.rate-high{background:var(--accent-light);color:var(--accent);}
+.rate-mid{background:var(--amber-light);color:var(--amber);}
+.rate-low{background:var(--red-light);color:var(--red);}
+.detail-section{margin-top:24px;}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.detail-title{font-size:13px;font-weight:700;}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.detail-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:box-shadow .2s;}
+.detail-card.highlight{box-shadow:0 0 0 2px var(--accent);}
+.detail-card-hd{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border);}
+.detail-card-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.detail-card-name{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.detail-inner{width:100%;border-collapse:collapse;font-size:12px;}
+.detail-inner thead th{background:var(--bg);padding:7px 14px;text-align:right;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);border-bottom:1px solid var(--border);}
+.detail-inner thead th:first-child{text-align:left;}
+.detail-inner tbody tr{border-bottom:1px solid var(--bg);}
+.detail-inner tbody tr:last-child{border-bottom:none;}
+.detail-inner tbody td{padding:7px 14px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--text);}
+.detail-inner tbody td:first-child{text-align:left;color:var(--text2);font-size:11px;display:table-cell;}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);font-family:var(--mono);}
+.main{max-width:1280px;margin:0 auto;padding:28px 32px;}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+  <div class="spinner"></div>
+  <div class="loading-title">Google予約 転換率ダッシュボード</div>
+  <div class="loading-sub" id="loadingMsg">Google Spreadsheet からデータを読込中...</div>
+</div>
+
+<div class="error-screen" id="errorScreen">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">データの読み込みに失敗しました</div>
+  <div class="error-msg" id="errorMsg">—</div>
+  <button class="btn-retry" onclick="fetchData()">再試行</button>
+</div>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+    <div>
+      <div class="header-title">Google予約 転換率ダッシュボード</div>
+      <div class="header-sub">各診所成效-數據版 | Google Spreadsheet 自動連携</div>
+    </div>
+  </div>
+  <span class="header-badge" id="dataRange">読込中...</span>
+</header>
+
+<main class="main" id="mainContent" style="display:none">
+  <div class="update-bar">
+    <div class="update-info">データ行数: <strong id="rowCount">—</strong> &nbsp;|&nbsp; 診所数: <strong id="clinicCount">—</strong> &nbsp;|&nbsp; 最終更新: <strong id="loadTime">—</strong></div>
+    <button class="btn-reload" id="reloadBtn" onclick="fetchData()">
+      <div class="spin-sm"></div>🔄 最新データを取得
+    </button>
+  </div>
+
+  <div class="controls">
+    <div class="controls-title">表示設定</div>
+    <div class="controls-row">
+      <div class="control-group">
+        <label>期間</label>
+        <div class="date-inputs">
+          <input type="month" id="startMonth"><span>〜</span><input type="month" id="endMonth">
+        </div>
+      </div>
+      <div class="control-group" style="flex:1;min-width:300px;">
+        <label>表示クリニック <span style="font-weight:400;color:var(--text3);font-size:10px;">（ダブルクリックで詳細へジャンプ）</span></label>
+        <div class="clinic-pills">
+          <button class="pill-all" onclick="toggleAll()">全選択 / 解除</button>
+          <div id="pillContainer" style="display:flex;flex-wrap:wrap;gap:7px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Google予約クリック（合計）</div><div class="metric-value" id="m1">—</div><div class="metric-sub">選択期間内</div></div>
+    <div class="metric amber"><div class="metric-label">予約ページ遷移（合計）</div><div class="metric-value" id="m2">—</div><div class="metric-sub">選択期間内</div></div>
+    <div class="metric blue"><div class="metric-label">平均転換率</div><div class="metric-value" id="m3">—</div><div class="metric-sub">全クリニック・全期間平均</div></div>
+    <div class="metric red"><div class="metric-label">最高転換率（月）</div><div class="metric-value" id="m4">—</div><div class="metric-sub" id="m4sub">—</div></div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-card">
+      <div class="chart-title">Google予約クリック数</div>
+      <div class="chart-desc">月別推移</div>
+      <div class="chart-wrap"><canvas id="clickChart"></canvas></div>
+      <div class="legend" id="legend1"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">転換率</div>
+      <div class="chart-desc">Google予約クリック → 予約ページ遷移 (%)</div>
+      <div class="chart-wrap"><canvas id="rateChart"></canvas></div>
+      <div class="legend" id="legend2"></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">クリニック別サマリー</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">診所名をクリックで詳細へジャンプ</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th style="text-align:left;min-width:200px;">クリニック</th>
+          <th>G予約クリック計</th><th>予約遷移計</th><th>平均転換率</th><th>最高転換率</th><th>最低転換率</th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-header">
+      <div class="detail-title">クリニック別 月次データ詳細</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">選択期間・選択診所のみ表示</div>
+    </div>
+    <div class="detail-grid" id="detailGrid"></div>
+  </div>
+
+  <div class="footer">
+    <span>データソース: Google Spreadsheet「各診所成效-數據版」</span>
+    <span id="footerDate">—</span>
+  </div>
+</main>
+
+<script>
+const GAS_URL = 'https://script.google.com/a/macros/alleypin.com/s/AKfycbynerIAqMy5fYAkeFM6YYgXEva3Mf_6My_Bk5irq4JZxGkNBrBnaWJM2aig608Ydkmzlw/exec';
+
+const PALETTE = ['#2563EB','#059669','#DB2777','#D97706','#0891B2','#4F46E5','#6B7280','#16A34A','#EA580C','#7E22CE','#BE185D','#0F766E','#92400E','#1D4ED8','#9F1239','#374151','#065F46','#1E3A5F','#5B21B6','#0369A1','#B45309','#6D28D9'];
+const clinicColor = {}; let paletteIdx = 0;
+function getColor(n){ if(!clinicColor[n]) clinicColor[n]=PALETTE[paletteIdx++%PALETTE.length]; return clinicColor[n]; }
+
+// 診所名 → DOM の id に使える文字列に変換
+function clinicId(name){ return 'card-'+name.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+// 詳細カードへジャンプ＋ハイライト
+function jumpToCard(name){
+  const card = document.getElementById(clinicId(name));
+  if(!card) return;
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  card.classList.add('highlight');
+  setTimeout(()=>card.classList.remove('highlight'), 1500);
+}
+
+let RAW=[],CLINICS=[],MONTHS=[],selectedClinics=new Set(),clickChart=null,rateChart=null;
+
+async function fetchData(){
+  showLoading('Google Spreadsheet からデータを読込中...');
+  const btn=document.getElementById('reloadBtn');
+  btn.classList.add('loading');
+  try {
+    const data = await fetchJSONP(GAS_URL);
+    if(data && data.error) throw new Error('Apps Script エラー: '+data.error);
+    if(!Array.isArray(data)||data.length<2) throw new Error('データが空か形式が不正です。');
+    const rows = parseSheetData(data);
+    if(!rows.length) throw new Error('Google予約データが見つかりません。\n\nシートに以下の列が必要です:\n・診所\n・月份\n・Google預約進站次數\n・Google預約點擊預約總次數');
+    buildState(rows);
+    renderDashboard();
+    document.getElementById('rowCount').textContent=rows.length+' 行';
+    document.getElementById('clinicCount').textContent=CLINICS.length+' 診所';
+    document.getElementById('loadTime').textContent=new Date().toLocaleString('ja-JP');
+    document.getElementById('footerDate').textContent='最終更新: '+new Date().toLocaleString('ja-JP');
+    hideLoading();
+    document.getElementById('mainContent').style.display='';
+  } catch(err){
+    showError(err.message);
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+function fetchJSONP(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('タイムアウト: Apps Script の応答がありませんでした。'));
+    }, 15000);
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.onerror = function() { cleanup(); reject(new Error('スクリプトの読み込みに失敗しました。')); };
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    document.head.appendChild(script);
+  });
+}
+
+function parseSheetData(data){
+  const headers=data[0].map(h=>String(h).trim());
+  const find=(...kws)=>headers.findIndex(h=>kws.some(k=>h.includes(k)));
+  const iC=find('診所'), iM=find('月份','月');
+  const iCl=find('Google預約進站次數','Google予約進站次數','預約進站次數','進站次數');
+  const iTr=find('Google預約點擊預約總次數','Google予約點擊預約總次數','點擊預約總次數','予約點擊');
+  if(iC<0||iM<0) throw new Error('列が見つかりません。ヘッダー: '+headers.slice(0,8).join(' | '));
+  if(iCl<0||iTr<0) throw new Error('Google予約の列が見つかりません。ヘッダー: '+headers.slice(0,8).join(' | '));
+
+  function normalizeMonth(v) {
+    const s=String(v??'').trim();
+    if(/^\d{4}-\d{2}-\d{2}T/.test(s)){
+      const jst=new Date(new Date(s).getTime()+(9*3600000));
+      return String(jst.getUTCFullYear())+'-'+String(jst.getUTCMonth()+1).padStart(2,'0');
+    }
+    const m=s.replace(/\//g,'-').replace(/年/,'-').replace(/月/,'').trim();
+    if(/^\d{4}-\d{1,2}$/.test(m)) return m.split('-').map((p,i)=>i===0?p:p.padStart(2,'0')).join('-');
+    return null;
+  }
+
+  const rows=[];
+  for(let i=1;i<data.length;i++){
+    const row=data[i];
+    const clinic=String(row[iC]??'').trim();
+    if(!clinic||clinic==='診所'||clinic.includes('無權限')||clinic.startsWith('琥珀')) continue;
+    const month=normalizeMonth(row[iM]);
+    if(!month) continue;
+    const pn=v=>{const s=String(v??'').replace(/,/g,'').trim();if(!s||s==='-'||s.startsWith('#')||s.includes('數據不完整')||s.includes('已解約')) return null;const m=s.match(/\d[\d.]*/);return m?parseFloat(m[0]):null;};
+    const clicks=pn(row[iCl]),transitions=pn(row[iTr]);
+    if(clicks===null&&transitions===null) continue;
+    rows.push({clinic,month,clicks,transitions});
+  }
+
+  const deduped=[]; const seen=new Map();
+  for(const r of rows){
+    const key=r.clinic+'__'+r.month;
+    if(!seen.has(key)){seen.set(key,deduped.length);deduped.push({...r});}
+    else{
+      const idx=seen.get(key); const ex=deduped[idx];
+      if(ex.clicks===null&&r.clicks!==null) deduped[idx]={...r};
+      else if(ex.clicks!==null&&r.clicks!==null&&r.clicks>ex.clicks) deduped[idx]={...r};
+    }
+  }
+  return deduped;
+}
+
+function buildState(rows){
+  RAW=rows;
+  const sc=new Set(),sm=new Set();CLINICS=[];MONTHS=[];
+  rows.forEach(r=>{if(!sc.has(r.clinic)){sc.add(r.clinic);CLINICS.push(r.clinic);}sm.add(r.month);});
+  MONTHS=[...sm].sort();selectedClinics=new Set(CLINICS);
+}
+
+function renderDashboard(){
+  const minM=MONTHS[0],maxM=MONTHS[MONTHS.length-1];
+  const sEl=document.getElementById('startMonth'),eEl=document.getElementById('endMonth');
+  sEl.min=minM;sEl.max=maxM;eEl.min=minM;eEl.max=maxM;
+  if(!sEl.value||sEl.value<minM||sEl.value>maxM) sEl.value=minM;
+  if(!eEl.value||eEl.value<minM||eEl.value>maxM) eEl.value=maxM;
+  buildPills();update();
+}
+
+function getFiltered(){
+  const start=document.getElementById('startMonth').value,end=document.getElementById('endMonth').value;
+  const months=MONTHS.filter(m=>m>=start&&m<=end);
+  const data=CLINICS.filter(c=>selectedClinics.has(c)).map(clinic=>{
+    const clicks=months.map(m=>{const r=RAW.find(x=>x.clinic===clinic&&x.month===m);return r?r.clicks:null;});
+    const transitions=months.map(m=>{const r=RAW.find(x=>x.clinic===clinic&&x.month===m);return r?r.transitions:null;});
+    return{clinic,clicks,transitions,color:getColor(clinic)};
+  }).filter(d=>d.clicks.some(v=>v!==null)||d.transitions.some(v=>v!==null));
+  return{months,data};
+}
+
+function buildPills(){
+  const c=document.getElementById('pillContainer');c.innerHTML='';
+  CLINICS.forEach(name=>{
+    const p=document.createElement('button');
+    p.className='pill active';
+    p.textContent=name.length>16?name.slice(0,14)+'…':name;
+    p.title=name+'\n（ダブルクリックで詳細へジャンプ）';
+    p.dataset.clinic=name;
+    p.style.cssText='background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
+    // シングルクリック：表示切替
+    p.addEventListener('click',()=>{
+      if(selectedClinics.has(name)){
+        if(selectedClinics.size===1)return;
+        selectedClinics.delete(name);p.classList.remove('active');p.style.cssText='';
+      } else {
+        selectedClinics.add(name);p.classList.add('active');
+        p.style.cssText='background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
+      }
+      update();
+    });
+    // ダブルクリック：詳細カードへジャンプ
+    p.addEventListener('dblclick',(e)=>{
+      e.preventDefault();
+      // 非表示なら先に表示する
+      if(!selectedClinics.has(name)){
+        selectedClinics.add(name);p.classList.add('active');
+        p.style.cssText='background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
+        update();
+      }
+      setTimeout(()=>jumpToCard(name),100);
+    });
+    c.appendChild(p);
+  });
+}
+
+function toggleAll(){
+  const pills=document.querySelectorAll('#pillContainer .pill');
+  if(selectedClinics.size===CLINICS.length){
+    const first=CLINICS[0];selectedClinics=new Set([first]);
+    pills.forEach(p=>{if(p.dataset.clinic!==first){p.classList.remove('active');p.style.cssText='';}});
+  } else {
+    selectedClinics=new Set(CLINICS);
+    pills.forEach(p=>{p.classList.add('active');p.style.cssText='background:'+getColor(p.dataset.clinic)+';border-color:'+getColor(p.dataset.clinic)+';color:white';});
+  }
+  update();
+}
+
+function rc(v){return v>=30?'rate-high':v>=20?'rate-mid':'rate-low';}
+
+function updateMetrics({months,data}){
+  let tC=0,tT=0,maxR=0,maxLbl='';
+  data.forEach(d=>months.forEach((m,i)=>{
+    const cl=d.clicks[i],tr=d.transitions[i];
+    if(cl!==null)tC+=cl;if(tr!==null)tT+=tr;
+    if(cl>0&&tr!==null){const r=tr/cl*100;if(r>maxR){maxR=r;maxLbl=d.clinic.slice(0,10)+' / '+m.replace('-','/');}}}));
+  const avg=tC>0?tT/tC*100:0;
+  document.getElementById('m1').textContent=tC.toLocaleString();
+  document.getElementById('m2').textContent=tT.toLocaleString();
+  document.getElementById('m3').textContent=avg.toFixed(1)+'%';
+  document.getElementById('m4').textContent=maxR.toFixed(1)+'%';
+  document.getElementById('m4sub').textContent=maxLbl;
+  const s=document.getElementById('startMonth').value.replace('-','/'),e=document.getElementById('endMonth').value.replace('-','/');
+  document.getElementById('dataRange').textContent=s+' — '+e;
+}
+
+function chartCfg(labels,datasets,isRate){
+  return{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+(isRate?(ctx.raw?.toFixed(1)||'—')+'%':(ctx.raw??'—'))}}},
+    scales:{x:{ticks:{color:'#6B6860',font:{size:11,family:"'DM Mono'"},autoSkip:false,maxRotation:40},grid:{color:'rgba(0,0,0,0.05)'}},
+            y:{ticks:{color:'#6B6860',font:{size:11,family:"'DM Mono'"},callback:v=>isRate?v+'%':v},grid:{color:'rgba(0,0,0,0.05)'},...(isRate?{min:0}:{})}}}};
+}
+
+function updateCharts({months,data}){
+  const labels=months.map(m=>m.replace(/^20(\d{2})-(\d{2})$/,'$1/$2'));
+  const mk=(d,fn)=>({label:d.clinic,data:fn(d),borderColor:d.color,backgroundColor:d.color+'18',borderWidth:2,pointRadius:3,pointHoverRadius:5,tension:0.3,fill:false,spanGaps:false});
+  if(clickChart)clickChart.destroy();if(rateChart)rateChart.destroy();
+  clickChart=new Chart(document.getElementById('clickChart'),chartCfg(labels,data.map(d=>mk(d,x=>x.clicks)),false));
+  rateChart=new Chart(document.getElementById('rateChart'),chartCfg(labels,data.map(d=>mk(d,x=>x.clicks.map((cl,i)=>{const tr=x.transitions[i];return(cl!==null&&cl>0&&tr!==null)?Math.round(tr/cl*1000)/10:null;}))),true));
+  ['legend1','legend2'].forEach(id=>{document.getElementById(id).innerHTML=data.map(d=>'<div class="legend-item"><div class="legend-dot" style="background:'+d.color+'"></div>'+(d.clinic.length>14?d.clinic.slice(0,12)+'…':d.clinic)+'</div>').join('');});
+}
+
+function updateTable({data}){
+  document.getElementById('tableBody').innerHTML=data.map(d=>{
+    const pairs=d.clicks.map((cl,i)=>({cl,tr:d.transitions[i]})).filter(p=>p.cl!==null);
+    const tC=pairs.reduce((a,p)=>a+p.cl,0),tT=pairs.reduce((a,p)=>a+(p.tr||0),0);
+    const avg=tC>0?tT/tC*100:0;
+    const rates=pairs.filter(p=>p.cl>0&&p.tr!==null).map(p=>p.tr/p.cl*100);
+    const maxR=rates.length?Math.max(...rates):0,minR=rates.length?Math.min(...rates):0;
+    return '<tr><td><div class="clinic-dot" style="background:'+d.color+'"></div>'
+      +'<span class="clinic-link" onclick="jumpToCard(\''+d.clinic.replace(/'/g,"\\'")+'\')" title="クリックで詳細へ">'+d.clinic+'</span></td>'
+      +'<td>'+tC.toLocaleString()+'</td><td>'+tT.toLocaleString()+'</td>'
+      +'<td><span class="rate-badge '+rc(avg)+'">'+avg.toFixed(1)+'%</span></td>'
+      +'<td><span class="rate-badge '+rc(maxR)+'">'+maxR.toFixed(1)+'%</span></td>'
+      +'<td><span class="rate-badge '+rc(minR)+'">'+minR.toFixed(1)+'%</span></td></tr>';
+  }).join('');
+}
+
+function updateDetailCards({months,data}){
+  const labels=months.map(m=>m.replace(/^20(\d{2})-(\d{2})$/,'$1/$2'));
+  document.getElementById('detailGrid').innerHTML=data.map(d=>{
+    const pairs=d.clicks.map((cl,i)=>({cl,tr:d.transitions[i]})).filter(p=>p.cl!==null);
+    const tC=pairs.reduce((a,p)=>a+p.cl,0),tT=pairs.reduce((a,p)=>a+(p.tr||0),0);
+    const avg=tC>0?tT/tC*100:0;
+    const rows=labels.map((lbl,i)=>{
+      const cl=d.clicks[i],tr=d.transitions[i];
+      if(cl===null) return '<tr style="opacity:.35"><td>'+lbl+'</td><td>—</td><td>—</td><td>—</td></tr>';
+      const rate=(cl>0&&tr!==null)?tr/cl*100:null;
+      const badge=rate===null?'—':'<span class="rate-badge '+rc(rate)+'">'+rate.toFixed(1)+'%</span>';
+      return '<tr '+(i%2===1?'style="background:var(--bg)"':'')+'><td>'+lbl+'</td><td>'+cl.toLocaleString()+'</td><td>'+(tr!==null?tr.toLocaleString():'—')+'</td><td>'+badge+'</td></tr>';
+    }).join('');
+    return '<div class="detail-card" id="'+clinicId(d.clinic)+'">'
+      +'<div class="detail-card-hd">'
+      +'<div class="detail-card-color" style="background:'+d.color+'"></div>'
+      +'<div class="detail-card-name" title="'+d.clinic+'">'+d.clinic+'</div>'
+      +'<span class="rate-badge '+rc(avg)+'" style="margin-left:auto;flex-shrink:0">平均 '+avg.toFixed(1)+'%</span>'
+      +'</div>'
+      +'<table class="detail-inner"><thead><tr><th>月</th><th>Google予約</th><th>予約遷移</th><th>転換率</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table></div>';
+  }).join('');
+}
+
+function update(){const f=getFiltered();updateMetrics(f);updateCharts(f);updateTable(f);updateDetailCards(f);}
+
+function showLoading(msg){document.getElementById('loadingMsg').textContent=msg||'';document.getElementById('loadingScreen').style.display='flex';document.getElementById('errorScreen').style.display='none';}
+function hideLoading(){document.getElementById('loadingScreen').style.display='none';}
+function showError(msg){document.getElementById('errorMsg').textContent=msg;document.getElementById('loadingScreen').style.display='none';document.getElementById('errorScreen').style.display='flex';}
+
+document.getElementById('startMonth').addEventListener('change',()=>{const s=document.getElementById('startMonth').value,e=document.getElementById('endMonth').value;if(s>e)document.getElementById('endMonth').value=s;update();});
+document.getElementById('endMonth').addEventListener('change',()=>{const s=document.getElementById('startMonth').value,e=document.getElementById('endMonth').value;if(e<s)document.getElementById('startMonth').value=e;update();});
+
+fetchData();
+</script>
+</body>
+</html>
