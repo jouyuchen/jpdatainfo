@@ -25,6 +25,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .loading-sub{font-size:12px;color:var(--text2);font-family:var(--mono);}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+/* Password screen */
+.pw-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px;}
+.pw-logo{width:56px;height:56px;background:var(--accent);border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.pw-logo svg{width:32px;height:32px;fill:white;}
+.pw-title{font-size:18px;font-weight:700;}
+.pw-sub{font-size:12px;color:var(--text2);font-family:var(--mono);}
+.pw-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;}
+.pw-label{font-size:12px;color:var(--text2);font-weight:500;}
+.pw-row{display:flex;gap:8px;}
+.pw-input{font-family:var(--mono);font-size:14px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;flex:1;letter-spacing:.05em;}
+.pw-input:focus{border-color:var(--accent);}
+.pw-input.error{border-color:var(--red);}
+.pw-btn{font-size:13px;padding:10px 20px;border-radius:8px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:500;transition:background .15s;white-space:nowrap;}
+.pw-btn:hover{background:#235030;}
+.pw-error{font-size:12px;color:var(--red);font-family:var(--mono);display:none;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pw-box.shake{animation:shake .3s ease;}
 .error-screen{position:fixed;inset:0;background:var(--bg);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
 .error-icon{font-size:48px;}
 .error-title{font-size:18px;font-weight:700;color:var(--red);}
@@ -179,6 +196,21 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
 </style>
 </head>
 <body>
+
+<!-- Password Screen -->
+<div class="pw-screen" id="pwScreen" style="display:none">
+  <div class="pw-logo"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+  <div class="pw-title">Google予約 転換率ダッシュボード</div>
+  <div class="pw-sub">各診所成效-數據版</div>
+  <div class="pw-box" id="pwBox">
+    <div class="pw-label">パスワード / 密碼</div>
+    <div class="pw-row">
+      <input class="pw-input" id="pwInput" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitPassword()">
+      <button class="pw-btn" onclick="submitPassword()">進入</button>
+    </div>
+    <div class="pw-error" id="pwError">密碼錯誤，請再試一次</div>
+  </div>
+</div>
 
 <div class="loading-screen" id="loadingScreen">
   <div class="loading-logo"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
@@ -350,7 +382,44 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
 </main>
 
 <script>
+// ↓ 密碼的 SHA-256 雜湊值（不是明文密碼）
+const PASSWORD_HASH = '50d853eab052dc503855339c8019394cd8011c0748518778de0a7042ff99ddd0';
+
 const GAS_URL = 'https://script.google.com/a/macros/alleypin.com/s/AKfycbynerIAqMy5fYAkeFM6YYgXEva3Mf_6My_Bk5irq4JZxGkNBrBnaWJM2aig608Ydkmzlw/exec';
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function checkAuth(){
+  if(sessionStorage.getItem('dash_auth')==='1'){
+    fetchData();
+  } else {
+    document.getElementById('pwScreen').style.display='flex';
+  }
+}
+
+async function submitPassword(){
+  const val = document.getElementById('pwInput').value;
+  const hash = await sha256(val);
+  if(hash === PASSWORD_HASH){
+    sessionStorage.setItem('dash_auth','1');
+    document.getElementById('pwScreen').style.display='none';
+    fetchData();
+  } else {
+    const box = document.getElementById('pwBox');
+    const err = document.getElementById('pwError');
+    const inp = document.getElementById('pwInput');
+    err.style.display='block';
+    inp.classList.add('error');
+    inp.value='';
+    box.classList.remove('shake');
+    void box.offsetWidth;
+    box.classList.add('shake');
+    setTimeout(()=>inp.classList.remove('error'),600);
+  }
+}
 
 const PALETTE = ['#2563EB','#059669','#DB2777','#D97706','#0891B2','#4F46E5','#6B7280','#16A34A','#EA580C','#7E22CE','#BE185D','#0F766E','#92400E','#1D4ED8','#9F1239','#374151','#065F46','#1E3A5F','#5B21B6','#0369A1','#B45309','#6D28D9'];
 const clinicColor = {}; let paletteIdx = 0;
@@ -797,7 +866,7 @@ function showError(msg){document.getElementById('errorMsg').textContent=msg;docu
 document.getElementById('startMonth').addEventListener('change',()=>{const s=document.getElementById('startMonth').value,e=document.getElementById('endMonth').value;if(s>e)document.getElementById('endMonth').value=s;update();});
 document.getElementById('endMonth').addEventListener('change',()=>{const s=document.getElementById('startMonth').value,e=document.getElementById('endMonth').value;if(e<s)document.getElementById('startMonth').value=e;update();});
 
-fetchData();
+checkAuth();
 </script>
 </body>
 </html>
