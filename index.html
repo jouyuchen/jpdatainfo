@@ -45,7 +45,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .btn-reload.loading{opacity:.5;pointer-events:none;}
 .spin-sm{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:none;}
 .btn-reload.loading .spin-sm{display:inline-block;}
-.controls{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px;}
+.controls{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;}
 .controls-title{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;}
 .controls-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
 .control-group{display:flex;flex-direction:column;gap:8px;}
@@ -100,11 +100,12 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
 .rate-mid{background:var(--amber-light);color:var(--amber);}
 .rate-low{background:var(--red-light);color:var(--red);}
 .detail-section{margin-top:24px;}
-.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
 .detail-title{font-size:13px;font-weight:700;}
 .detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
 .detail-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:box-shadow .2s;}
 .detail-card.highlight{box-shadow:0 0 0 2px var(--accent);}
+.detail-card.hidden{display:none;}
 .detail-card-hd{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border);}
 .detail-card-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .detail-card-name{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -117,6 +118,64 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
 .detail-inner tbody td:first-child{text-align:left;color:var(--text2);font-size:11px;display:table-cell;}
 .footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);font-family:var(--mono);}
 .main{max-width:1280px;margin:0 auto;padding:28px 32px;}
+
+/* Section Navigation — full-width sticky bar below header */
+.section-nav{display:flex;gap:6px;align-items:center;background:var(--accent);border:none;border-radius:0;padding:8px 32px;flex-wrap:wrap;position:sticky;top:56px;z-index:150;box-shadow:0 2px 10px rgba(45,90,61,0.3);}
+.section-nav-label{font-size:10px;font-weight:500;color:rgba(255,255,255,0.55);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-right:4px;white-space:nowrap;flex-shrink:0;}
+.snav-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:white;cursor:pointer;transition:all .15s;font-family:var(--sans);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.snav-btn:hover{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.25);color:white;}
+.snav-sep{width:1px;height:18px;background:rgba(255,255,255,0.2);margin:0 6px;flex-shrink:0;}
+.snav-info{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.65);font-family:var(--mono);white-space:nowrap;display:flex;align-items:center;gap:10px;}
+.snav-info strong{color:rgba(255,255,255,0.9);}
+.snav-reload{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:white;cursor:pointer;transition:all .15s;font-family:var(--mono);display:flex;align-items:center;gap:5px;white-space:nowrap;margin-left:6px;}
+.snav-reload:hover{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.25);}
+.snav-reload.loading{opacity:.5;pointer-events:none;}
+.snav-reload .spin-sm{border-color:rgba(255,255,255,0.3);border-top-color:white;}
+
+/* Detail card collapsible */
+.detail-card-hd{cursor:pointer;}
+.detail-card-hd:hover{background:var(--surface2);}
+.detail-chevron{width:14px;height:14px;flex-shrink:0;color:var(--text3);transition:transform .2s;}
+.detail-card-body.collapsed{display:none;}
+.detail-collapse-actions{display:flex;gap:6px;}
+.btn-collapse-all{font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:white;cursor:pointer;transition:all .15s;font-family:var(--mono);}
+.btn-collapse-all:hover{background:#235030;border-color:#235030;}
+
+/* Detail Search Bar */
+.detail-search-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.search-input-wrap{position:relative;display:flex;align-items:center;}
+.search-input-wrap svg{position:absolute;left:9px;width:13px;height:13px;fill:var(--text3);pointer-events:none;}
+.detail-search-input{font-family:var(--sans);font-size:12px;border:1px solid var(--border);border-radius:7px;padding:7px 10px 7px 28px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;width:180px;}
+.detail-search-input:focus{border-color:var(--accent);}
+.detail-search-input::placeholder{color:var(--text3);}
+.detail-jump-select{font-family:var(--mono);font-size:12px;border:1px solid var(--border);border-radius:7px;padding:7px 10px;background:var(--bg);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s;max-width:220px;}
+.detail-jump-select:focus{border-color:var(--accent);}
+
+/* Compare Section */
+.compare-section{margin-top:28px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.compare-hd{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.compare-body{padding:20px 24px;}
+.compare-pick-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:10px;}
+.compare-pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.compare-pill{font-size:12px;padding:5px 12px;border-radius:99px;border:1px solid var(--border);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;background:var(--surface2);color:var(--text2);}
+.compare-pill:hover{border-color:var(--text3);color:var(--text);}
+.compare-pill.selected{color:white;border-color:transparent;}
+.compare-actions{display:flex;gap:8px;margin-bottom:20px;align-items:center;}
+.compare-count{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.compare-clear-btn{font-size:12px;padding:5px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s;}
+.compare-clear-btn:hover{border-color:var(--red);color:var(--red);}
+.compare-empty{text-align:center;padding:40px 32px;font-size:12px;color:var(--text3);font-family:var(--mono);line-height:2;}
+.compare-table-wrap{overflow-x:auto;}
+.compare-table{width:100%;border-collapse:collapse;font-size:12px;}
+.compare-table th{background:var(--bg);padding:9px 14px;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--border);text-align:center;}
+.compare-table th:first-child{text-align:left;min-width:60px;}
+.compare-table th.clinic-hd{font-family:var(--sans);font-size:12px;border-bottom:3px solid;}
+.compare-table th.sub-hd{font-size:10px;color:var(--text3);font-weight:400;}
+.compare-table td{padding:8px 14px;text-align:center;font-family:var(--mono);font-size:12px;border-bottom:1px solid var(--bg);white-space:nowrap;}
+.compare-table td:first-child{text-align:left;color:var(--text2);font-size:11px;}
+.compare-table tbody tr:hover{background:var(--bg);}
+.compare-table tfoot td{background:var(--bg);font-weight:600;border-top:1px solid var(--border);}
+.compare-table tfoot td:first-child{color:var(--text2);}
 </style>
 </head>
 <body>
@@ -146,15 +205,47 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
   <span class="header-badge" id="dataRange">読込中...</span>
 </header>
 
-<main class="main" id="mainContent" style="display:none">
-  <div class="update-bar">
-    <div class="update-info">データ行数: <strong id="rowCount">—</strong> &nbsp;|&nbsp; 診所数: <strong id="clinicCount">—</strong> &nbsp;|&nbsp; 最終更新: <strong id="loadTime">—</strong></div>
-    <button class="btn-reload" id="reloadBtn" onclick="fetchData()">
-      <div class="spin-sm"></div>🔄 最新データを取得
-    </button>
+<!-- Sticky nav bar — outside main so it spans full viewport width -->
+<nav class="section-nav" id="sectionNav" style="display:none">
+  <span class="section-nav-label">JUMP TO</span>
+  <button class="snav-btn" onclick="scrollToSection('section-controls')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v1.5H2V4zm0 3.5h8v1.5H2V7.5zm0 3.5h10v1.5H2V11z"/></svg>
+    表示設定
+  </button>
+  <button class="snav-btn" onclick="scrollToSection('section-metrics')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="8" width="3" height="7"/><rect x="6" y="5" width="3" height="10"/><rect x="11" y="1" width="3" height="14"/></svg>
+    KPIサマリー
+  </button>
+  <button class="snav-btn" onclick="scrollToSection('section-charts')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><polyline points="1,12 5,7 8,9 12,4 15,6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+    グラフ
+  </button>
+  <button class="snav-btn" onclick="scrollToSection('section-table')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>
+    クリニック別
+  </button>
+  <button class="snav-btn" onclick="scrollToSection('section-detail')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="9" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="11" height="2" rx="1"/></svg>
+    月次詳細
+  </button>
+  <button class="snav-btn" onclick="scrollToSection('section-compare')">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="6" height="12" rx="1"/><rect x="9" y="2" width="6" height="12" rx="1"/></svg>
+    クリニック比較
+  </button>
+  <div class="snav-sep"></div>
+  <div class="snav-info">
+    <span>データ行数: <strong id="rowCount">—</strong></span>
+    <span>診所数: <strong id="clinicCount">—</strong></span>
+    <span>更新: <strong id="loadTime">—</strong></span>
   </div>
+  <button class="snav-reload" id="reloadBtn" onclick="fetchData()">
+    <div class="spin-sm"></div>🔄 最新データ
+  </button>
+</nav>
 
-  <div class="controls">
+<main class="main" id="mainContent" style="display:none">
+
+  <div class="controls" id="section-controls">
     <div class="controls-title">表示設定</div>
     <div class="controls-row">
       <div class="control-group">
@@ -173,14 +264,14 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
     </div>
   </div>
 
-  <div class="metrics">
+  <div class="metrics" id="section-metrics">
     <div class="metric"><div class="metric-label">Google予約クリック（合計）</div><div class="metric-value" id="m1">—</div><div class="metric-sub">選択期間内</div></div>
     <div class="metric amber"><div class="metric-label">予約ページ遷移（合計）</div><div class="metric-value" id="m2">—</div><div class="metric-sub">選択期間内</div></div>
     <div class="metric blue"><div class="metric-label">平均転換率</div><div class="metric-value" id="m3">—</div><div class="metric-sub">全クリニック・全期間平均</div></div>
     <div class="metric red"><div class="metric-label">最高転換率（月）</div><div class="metric-value" id="m4">—</div><div class="metric-sub" id="m4sub">—</div></div>
   </div>
 
-  <div class="charts">
+  <div class="charts" id="section-charts">
     <div class="chart-card">
       <div class="chart-title">Google予約クリック数</div>
       <div class="chart-desc">月別推移</div>
@@ -195,7 +286,7 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
     </div>
   </div>
 
-  <div class="table-card">
+  <div class="table-card" id="section-table">
     <div class="table-header">
       <div class="table-title">クリニック別サマリー</div>
       <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">診所名をクリックで詳細へジャンプ</div>
@@ -211,12 +302,45 @@ tbody td:first-child{text-align:left;font-family:var(--sans);font-weight:500;dis
     </div>
   </div>
 
-  <div class="detail-section">
+  <div class="detail-section" id="section-detail">
     <div class="detail-header">
       <div class="detail-title">クリニック別 月次データ詳細</div>
-      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">選択期間・選択診所のみ表示</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="detail-collapse-actions">
+          <button class="btn-collapse-all" onclick="expandAll()">全て展開</button>
+          <button class="btn-collapse-all" onclick="collapseAll()">全て折りたたむ</button>
+        </div>
+        <div class="detail-search-bar">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.867-3.833zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>
+            <input type="text" class="detail-search-input" id="detailSearch" placeholder="診所名で絞り込み..." oninput="filterDetailCards(this.value)">
+          </div>
+          <select class="detail-jump-select" id="detailJumpSelect" onchange="if(this.value){jumpToCard(this.value);this.value='';}">
+            <option value="">— 診所を選択してジャンプ —</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="detail-grid" id="detailGrid"></div>
+  </div>
+
+  <!-- Compare Section -->
+  <div class="compare-section" id="section-compare">
+    <div class="compare-hd">
+      <div class="detail-title">クリニック比較</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">選択期間のデータで複数診所を並べて比較</div>
+    </div>
+    <div class="compare-body">
+      <div class="compare-pick-label">比較する診所を選択（2件以上）</div>
+      <div class="compare-pills" id="comparePills"></div>
+      <div class="compare-actions">
+        <button class="compare-clear-btn" onclick="clearCompare()">選択を解除</button>
+        <span class="compare-count" id="compareCount"></span>
+      </div>
+      <div id="compareResult">
+        <div class="compare-empty">診所を2つ以上選択すると比較表が表示されます</div>
+      </div>
+    </div>
   </div>
 
   <div class="footer">
@@ -232,16 +356,156 @@ const PALETTE = ['#2563EB','#059669','#DB2777','#D97706','#0891B2','#4F46E5','#6
 const clinicColor = {}; let paletteIdx = 0;
 function getColor(n){ if(!clinicColor[n]) clinicColor[n]=PALETTE[paletteIdx++%PALETTE.length]; return clinicColor[n]; }
 
-// 診所名 → DOM の id に使える文字列に変換
 function clinicId(name){ return 'card-'+name.replace(/[^a-zA-Z0-9]/g,'_'); }
 
-// 詳細カードへジャンプ＋ハイライト
+function navOffset(){
+  const h=document.getElementById('sectionNav');
+  return 56+(h&&h.offsetHeight?h.offsetHeight:0)+8;
+}
+
 function jumpToCard(name){
   const card = document.getElementById(clinicId(name));
   if(!card) return;
-  card.scrollIntoView({behavior:'smooth', block:'start'});
+  const body = card.querySelector('.detail-card-body');
+  const chevron = card.querySelector('.detail-chevron');
+  if(body && body.classList.contains('collapsed')){
+    body.classList.remove('collapsed');
+    if(chevron) chevron.style.transform='';
+  }
+  const top = card.getBoundingClientRect().top + window.pageYOffset - navOffset();
+  window.scrollTo({top, behavior:'smooth'});
   card.classList.add('highlight');
   setTimeout(()=>card.classList.remove('highlight'), 1500);
+}
+
+function scrollToSection(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const top = el.getBoundingClientRect().top + window.pageYOffset - navOffset();
+  window.scrollTo({top, behavior:'smooth'});
+}
+
+function filterDetailCards(query){
+  const q = query.trim().toLowerCase();
+  document.querySelectorAll('#detailGrid .detail-card').forEach(card=>{
+    const name = (card.querySelector('.detail-card-name')?.textContent||'').toLowerCase();
+    card.classList.toggle('hidden', q.length>0 && !name.includes(q));
+  });
+}
+
+function updateDetailJumpSelect(){
+  const sel = document.getElementById('detailJumpSelect');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— 診所を選択してジャンプ —</option>';
+  CLINICS.filter(c=>selectedClinics.has(c)).forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  if(prev) sel.value = prev;
+}
+
+// ===== Compare =====
+let compareSelected = new Set();
+
+function buildComparePills(){
+  const container = document.getElementById('comparePills');
+  container.innerHTML = '';
+  CLINICS.forEach(name=>{
+    const p = document.createElement('button');
+    const isSelected = compareSelected.has(name);
+    p.className = 'compare-pill' + (isSelected ? ' selected' : '');
+    p.textContent = name.length>20 ? name.slice(0,18)+'…' : name;
+    p.title = name;
+    p.dataset.clinic = name;
+    if(isSelected) p.style.cssText = 'background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
+    p.addEventListener('click',()=>{
+      if(compareSelected.has(name)){
+        compareSelected.delete(name);
+        p.classList.remove('selected');
+        p.style.cssText = '';
+      } else {
+        compareSelected.add(name);
+        p.classList.add('selected');
+        p.style.cssText = 'background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
+      }
+      updateCompare();
+    });
+    container.appendChild(p);
+  });
+}
+
+function clearCompare(){
+  compareSelected.clear();
+  document.querySelectorAll('#comparePills .compare-pill').forEach(p=>{
+    p.classList.remove('selected');
+    p.style.cssText = '';
+  });
+  updateCompare();
+}
+
+function updateCompare(){
+  const countEl = document.getElementById('compareCount');
+  countEl.textContent = compareSelected.size > 0 ? compareSelected.size+'件選択中' : '';
+
+  const container = document.getElementById('compareResult');
+  if(compareSelected.size < 2){
+    container.innerHTML = '<div class="compare-empty">診所を2つ以上選択すると比較表が表示されます</div>';
+    return;
+  }
+
+  const start = document.getElementById('startMonth').value;
+  const end = document.getElementById('endMonth').value;
+  const months = MONTHS.filter(m=>m>=start&&m<=end);
+  const labels = months.map(m=>m.replace(/^20(\d{2})-(\d{2})$/,'$1/$2'));
+
+  const selected = [...compareSelected].map(clinic=>{
+    const clicks = months.map(m=>{ const r=RAW.find(x=>x.clinic===clinic&&x.month===m); return r?r.clicks:null; });
+    const transitions = months.map(m=>{ const r=RAW.find(x=>x.clinic===clinic&&x.month===m); return r?r.transitions:null; });
+    return {clinic, clicks, transitions, color: getColor(clinic)};
+  });
+
+  // thead row 1: clinic names
+  let thead = '<tr><th rowspan="2" style="text-align:left;vertical-align:middle;">月</th>';
+  selected.forEach(d=>{
+    const short = d.clinic.length>16 ? d.clinic.slice(0,14)+'…' : d.clinic;
+    thead += '<th colspan="2" class="clinic-hd" style="color:'+d.color+';border-bottom-color:'+d.color+'" title="'+d.clinic+'">'+short+'</th>';
+  });
+  thead += '</tr>';
+  // thead row 2: sub headers
+  thead += '<tr>';
+  selected.forEach(()=>{
+    thead += '<th class="sub-hd">G予約クリック</th><th class="sub-hd">転換率</th>';
+  });
+  thead += '</tr>';
+
+  // tbody
+  let tbody = '';
+  labels.forEach((lbl,i)=>{
+    tbody += '<tr><td>'+lbl+'</td>';
+    selected.forEach(d=>{
+      const cl=d.clicks[i], tr=d.transitions[i];
+      const rate = (cl!==null&&cl>0&&tr!==null) ? tr/cl*100 : null;
+      tbody += '<td>'+(cl!==null ? cl.toLocaleString() : '—')+'</td>';
+      tbody += '<td>'+(rate!==null ? '<span class="rate-badge '+rc(rate)+'">'+rate.toFixed(1)+'%</span>' : '—')+'</td>';
+    });
+    tbody += '</tr>';
+  });
+
+  // tfoot summary
+  let tfoot = '<tr><td>合計 / 平均</td>';
+  selected.forEach(d=>{
+    const pairs = d.clicks.map((cl,i)=>({cl,tr:d.transitions[i]})).filter(p=>p.cl!==null);
+    const tC = pairs.reduce((a,p)=>a+p.cl,0);
+    const tT = pairs.reduce((a,p)=>a+(p.tr||0),0);
+    const avg = tC>0 ? tT/tC*100 : 0;
+    tfoot += '<td>'+tC.toLocaleString()+'</td>';
+    tfoot += '<td><span class="rate-badge '+rc(avg)+'">'+avg.toFixed(1)+'%</span></td>';
+  });
+  tfoot += '</tr>';
+
+  container.innerHTML = '<div class="compare-table-wrap"><table class="compare-table"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody><tfoot>'+tfoot+'</tfoot></table></div>';
 }
 
 let RAW=[],CLINICS=[],MONTHS=[],selectedClinics=new Set(),clickChart=null,rateChart=null;
@@ -260,10 +524,11 @@ async function fetchData(){
     renderDashboard();
     document.getElementById('rowCount').textContent=rows.length+' 行';
     document.getElementById('clinicCount').textContent=CLINICS.length+' 診所';
-    document.getElementById('loadTime').textContent=new Date().toLocaleString('ja-JP');
+    document.getElementById('loadTime').textContent=new Date().toLocaleTimeString('ja-JP');
     document.getElementById('footerDate').textContent='最終更新: '+new Date().toLocaleString('ja-JP');
     hideLoading();
     document.getElementById('mainContent').style.display='';
+    document.getElementById('sectionNav').style.display='';
   } catch(err){
     showError(err.message);
   } finally {
@@ -350,7 +615,9 @@ function renderDashboard(){
   sEl.min=minM;sEl.max=maxM;eEl.min=minM;eEl.max=maxM;
   if(!sEl.value||sEl.value<minM||sEl.value>maxM) sEl.value=minM;
   if(!eEl.value||eEl.value<minM||eEl.value>maxM) eEl.value=maxM;
-  buildPills();update();
+  buildPills();
+  buildComparePills();
+  update();
 }
 
 function getFiltered(){
@@ -373,7 +640,6 @@ function buildPills(){
     p.title=name+'\n（ダブルクリックで詳細へジャンプ）';
     p.dataset.clinic=name;
     p.style.cssText='background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
-    // シングルクリック：表示切替
     p.addEventListener('click',()=>{
       if(selectedClinics.has(name)){
         if(selectedClinics.size===1)return;
@@ -384,10 +650,8 @@ function buildPills(){
       }
       update();
     });
-    // ダブルクリック：詳細カードへジャンプ
     p.addEventListener('dblclick',(e)=>{
       e.preventDefault();
-      // 非表示なら先に表示する
       if(!selectedClinics.has(name)){
         selectedClinics.add(name);p.classList.add('active');
         p.style.cssText='background:'+getColor(name)+';border-color:'+getColor(name)+';color:white';
@@ -439,9 +703,18 @@ function chartCfg(labels,datasets,isRate){
 function updateCharts({months,data}){
   const labels=months.map(m=>m.replace(/^20(\d{2})-(\d{2})$/,'$1/$2'));
   const mk=(d,fn)=>({label:d.clinic,data:fn(d),borderColor:d.color,backgroundColor:d.color+'18',borderWidth:2,pointRadius:3,pointHoverRadius:5,tension:0.3,fill:false,spanGaps:false});
-  if(clickChart)clickChart.destroy();if(rateChart)rateChart.destroy();
-  clickChart=new Chart(document.getElementById('clickChart'),chartCfg(labels,data.map(d=>mk(d,x=>x.clicks)),false));
-  rateChart=new Chart(document.getElementById('rateChart'),chartCfg(labels,data.map(d=>mk(d,x=>x.clicks.map((cl,i)=>{const tr=x.transitions[i];return(cl!==null&&cl>0&&tr!==null)?Math.round(tr/cl*1000)/10:null;}))),true));
+  const clickDs=data.map(d=>mk(d,x=>x.clicks));
+  const rateDs=data.map(d=>mk(d,x=>x.clicks.map((cl,i)=>{const tr=x.transitions[i];return(cl!==null&&cl>0&&tr!==null)?Math.round(tr/cl*1000)/10:null;})));
+  if(!clickChart){
+    clickChart=new Chart(document.getElementById('clickChart'),chartCfg(labels,clickDs,false));
+  } else {
+    clickChart.data.labels=labels;clickChart.data.datasets=clickDs;clickChart.update('none');
+  }
+  if(!rateChart){
+    rateChart=new Chart(document.getElementById('rateChart'),chartCfg(labels,rateDs,true));
+  } else {
+    rateChart.data.labels=labels;rateChart.data.datasets=rateDs;rateChart.update('none');
+  }
   ['legend1','legend2'].forEach(id=>{document.getElementById(id).innerHTML=data.map(d=>'<div class="legend-item"><div class="legend-dot" style="background:'+d.color+'"></div>'+(d.clinic.length>14?d.clinic.slice(0,12)+'…':d.clinic)+'</div>').join('');});
 }
 
@@ -474,18 +747,48 @@ function updateDetailCards({months,data}){
       const badge=rate===null?'—':'<span class="rate-badge '+rc(rate)+'">'+rate.toFixed(1)+'%</span>';
       return '<tr '+(i%2===1?'style="background:var(--bg)"':'')+'><td>'+lbl+'</td><td>'+cl.toLocaleString()+'</td><td>'+(tr!==null?tr.toLocaleString():'—')+'</td><td>'+badge+'</td></tr>';
     }).join('');
+    const chevron='<svg class="detail-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(-90deg)"><path d="M4 6l4 4 4-4"/></svg>';
     return '<div class="detail-card" id="'+clinicId(d.clinic)+'">'
-      +'<div class="detail-card-hd">'
+      +'<div class="detail-card-hd" onclick="toggleCard(this)">'
       +'<div class="detail-card-color" style="background:'+d.color+'"></div>'
       +'<div class="detail-card-name" title="'+d.clinic+'">'+d.clinic+'</div>'
       +'<span class="rate-badge '+rc(avg)+'" style="margin-left:auto;flex-shrink:0">平均 '+avg.toFixed(1)+'%</span>'
+      +chevron
       +'</div>'
+      +'<div class="detail-card-body collapsed">'
       +'<table class="detail-inner"><thead><tr><th>月</th><th>Google予約</th><th>予約遷移</th><th>転換率</th></tr></thead>'
-      +'<tbody>'+rows+'</tbody></table></div>';
+      +'<tbody>'+rows+'</tbody></table></div></div>';
   }).join('');
+  const q = document.getElementById('detailSearch').value;
+  if(q) filterDetailCards(q);
+  updateDetailJumpSelect();
 }
 
-function update(){const f=getFiltered();updateMetrics(f);updateCharts(f);updateTable(f);updateDetailCards(f);}
+function toggleCard(hd){
+  const body=hd.nextElementSibling;
+  const chevron=hd.querySelector('.detail-chevron');
+  const isCollapsed=body.classList.toggle('collapsed');
+  chevron.style.transform=isCollapsed?'rotate(-90deg)':'';
+}
+
+function collapseAll(){
+  document.querySelectorAll('.detail-card-body').forEach(b=>b.classList.add('collapsed'));
+  document.querySelectorAll('.detail-chevron').forEach(c=>c.style.transform='rotate(-90deg)');
+}
+
+function expandAll(){
+  document.querySelectorAll('.detail-card-body').forEach(b=>b.classList.remove('collapsed'));
+  document.querySelectorAll('.detail-chevron').forEach(c=>c.style.transform='');
+}
+
+function update(){
+  const f=getFiltered();
+  updateMetrics(f);
+  updateCharts(f);
+  updateTable(f);
+  updateDetailCards(f);
+  updateCompare();
+}
 
 function showLoading(msg){document.getElementById('loadingMsg').textContent=msg||'';document.getElementById('loadingScreen').style.display='flex';document.getElementById('errorScreen').style.display='none';}
 function hideLoading(){document.getElementById('loadingScreen').style.display='none';}
